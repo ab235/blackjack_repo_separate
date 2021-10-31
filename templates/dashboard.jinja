@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <title>Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    </head>
+    <body style = "background-image: url('https://professorslots.com/wp-content/uploads/2018/03/1-casino-632862-680.jpg'); background-size: cover;">
+        <h1 style="color: goldenrod;">Dashboard</h1>
+        <p style = "color: palegoldenrod;">
+            {{user}}
+        </p>
+        <form method = "post" id = "logout" name = "logout">
+            <input type="submit" name = "logout" value = "Log Out" style="position: relative; top: -80px; left: 1175px;">
+        </form>
+        <div>
+            <p style="color: floralwhite;">
+                Utilities:
+            </p>
+            <form method = "post" id = "deposit" name = "deposit">
+                <input type = "text" id = "amount" name = "amount" placeholder="Amount to deposit">
+                <input type = "submit" name = "deposit" value = "Deposit">
+            </form>
+            <form method = "post" id = "withdraw" name = "withdraw">
+                <input type = "text" id = "amount" name = "amount" placeholder="Amount to withdraw">
+                <input type = "submit" name = "withdraw" value = "Withdraw">
+            </form>
+            <form method = "post" id = "cpass" name = "change_password">
+                <input type = "password" id = "newp" name = "new_password" placeholder="New Password">
+                <input type = "password" id = "cp" name = "confirm_password" placeholder="Confirm New Password">
+                <input type = "submit" name = "change_password" value = "Change Password">
+            </form>
+        </div>
+        <p style="color: floralwhite;">
+            {{message}}
+            <br><br>
+        </p>
+        <div class="card text-white bg-dark mb-3" style="width: 14rem;">
+          <img class="card-img-top" src="https://crescent.edu/uploads/editor/images/Blackjack.png" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title" style="color: goldenrod;">Blackjack</h5>
+            <form method = "post" id = "play" name = "play">
+                <input type = "submit" name = "play" value = "Play">
+            </form>
+          </div>
+        </div>
+    </body>
+</html>
