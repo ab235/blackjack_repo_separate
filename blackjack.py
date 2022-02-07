@@ -69,7 +69,9 @@ class Game:
     def __init__(self, player):
         self.deck = Deck()
         self.player = player
+        self.dealer = Player("Dealer")
         self.player.cards = []
+        self.dealer.cards = []
         self.deck.shuffle()
 
 
@@ -77,38 +79,31 @@ class Game:
         card = self.deck.deal()
         self.player.add_card(card)
         return 'Your cards: ' + str(self.player.cards)
+
+    def dturn(self):
+        self.dealer.add_card(self.deck.deal())
         
     def game_over(self):
         if (self.player.get_sum() > 21):
+            return True
+        elif (self.dealer.get_sum() > 21):
             return True
         elif (self.player.get_sum() <= 21):
             return False
     
     def stop(self):
         s = self.player.get_sum()
-        payoff = 0
+        d = self.dealer.get_sum()
         if (s>21):
-            payoff = -200
-        if (s==21):
-            payoff = 500
-        elif (s==20):
-            payoff = 300
-        elif (s==19):
-            payoff = 200
-        elif (s==18):
-            payoff = 150
-        elif (s==17):
-            payoff = 50
-        elif (s==16):
-            payoff = 10
-        elif (s==15):
-            payoff = -10
-        elif (s==14):
-            payoff = -50
-        elif (s==13):
-            payoff = -100
+            win = False
+        elif (d>21):
+            win = True
+        elif (s > d):
+            win = True
+        else:
+            win = False
 
         
-        return payoff
+        return win
 
 

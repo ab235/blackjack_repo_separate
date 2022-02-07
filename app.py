@@ -120,13 +120,36 @@ def dashboard(username):
                 else:
                     message = "Passwords do not match."
             if (request.form.get("play")):
-                return redirect(url_for('blackjack', username = username))
+                return redirect(url_for('loading', username = username))
             if (request.form.get("logout")):
                 session['user'] = False
                 return redirect(url_for('index'))
         return render_template('dashboard.jinja', user = str(user), message = message)
     else:
         return redirect(url_for('index'))
+
+@app.route('/loading/<username>', methods = ['GET', 'POST'])
+def loading(username):
+    session['message'] = ""
+    if (session['user']):
+        user = User.get_user(username, db)
+        user.money = float(user.money)
+        if (request.method == 'POST'):
+            try:
+                bet = float(request.form.get("amount"))
+                if (bet >= 0 and user.money >= bet):
+                    user.money -= bet
+                    User.update(user, db)
+                    session['bet'] = bet
+                    return redirect(url_for('blackjack', username = username))
+                else:
+                    message = "At this time, we do not support loans. Please bet an amount that you currently have."
+            except ValueError:
+                message = "This is not a bettable number."
+        return render_template('loading.jinja', user = str(user), message = session['message'])
+    else:
+        return redirect(url_for('index'))
+
 
 @app.route('/blackjack/<username>', methods = ['GET', 'POST'])
 def blackjack(username):
@@ -136,17 +159,12 @@ def blackjack(username):
         user.money = float(user.money)
         next_card = True
         player.name = username
-        if (user.money >= 300):
-            session['message'] += 'Do you want to take a card: <br>'
-            if (request.form.get("exit")):
-                return redirect(url_for('end_game', username = username))
-            if (request.form.get("next")):
-                session['message'] += game.turn() + "<br>"
-                return redirect(url_for('catch1', username = username))
-        else:
-            session['message'] = "You don't have enough funds."
-            if (request.form.get("exit")):
-                return redirect(url_for('dashboard', username = username))
+        session['message'] += 'Do you want to take a card: <br>'
+        if (request.form.get("exit")):
+            return redirect(url_for('end_game', username = username))
+        if (request.form.get("next")):
+            session['message'] += game.turn() + "<br>"
+            return redirect(url_for('catch1', username = username))
         return render_template('blackjack.jinja', user = str(user), message = session['message'])
     else:
         return redirect(url_for('index'))
@@ -154,9 +172,13 @@ def blackjack(username):
 def catch1(username): #recursive function that keeps running until the game ends
     if (session['user']):
         if (not game.game_over()):
+            if (game.dealer.get_sum() < 16):
+                game.dturn()
             user = User.get_user(username, db)
             session['message'] += 'Do you want to take a card: <br>'
             if (request.form.get("exit")):
+                while (game.dealer.get_sum() < 16):
+                    game.dturn()
                 return redirect(url_for('end_game', username = username))
             elif (request.form.get("next")): 
                 session['message'] += game.turn() + "<br>" #game.turn returns the players hand after dealing a card
@@ -169,22 +191,25 @@ def catch1(username): #recursive function that keeps running until the game ends
 @app.route('/end_game/<username>', methods = ['GET', 'POST'])
 def end_game(username):
     if (session['user']):
-        payoff = game.stop()
-        if (payoff-100 < 0):
-            session['message'] += 'You lost: $' + str(100 - payoff) + '<br>'
-        else:
-            session['message'] += 'You won: $' + str(payoff-100) + '<br>'
+        session['message'] = 'Your cards: ' + str(game.player.cards) + '<br>'
+        session['message'] += 'Dealer cards: ' + str(game.dealer.cards) + '<br>'
         user = User.get_user(username, db)
+        win = game.stop()
         user.money = float(user.money)
-        user.money += payoff - 50
+        if (win):
+            session['message'] += 'You won: $' + str(session['bet']) + '<br>'
+            user.money += 2*float(session['bet'])
+        else:
+            session['message'] += 'You lost: $' + str(session['bet']) + '<br>'
         User.update(user,db)
         player.cards = []
+        game.dealer.cards = []
         game.__init__(player)
-        session['message'] += ('do you want to play another game: <br>')
+        session['message'] += ('do you want to play another game?: <br>')
         if (request.form.get("exit")):
             return redirect(url_for('dashboard', username = username))
         elif (request.form.get("next")):
-            return redirect(url_for('blackjack', username = username))
+            return redirect(url_for('loading', username = username))
         return render_template('blackjack.jinja', user = str(user), message = session['message'])
     else:
         return redirect(url_for('index'))
@@ -196,3 +221,4 @@ def page_not_found(e):
     return render_template('404.jinja'), 404
 if __name__ == '__main__':
     app.run(use_reloader=False)
+    #db.create_all()
